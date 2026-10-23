@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ravan Dahan - Dussehra Archery Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            overflow: hidden;
+            background-color: #080314;
+        }
+        .font-festive {
+            font-family: 'Cinzel Decorative', serif;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        /* Custom Glowing Text */
+        .glow-text-gold {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 69, 0, 0.8);
+        }
+        .glow-box {
+            box-shadow: 0 0 25px rgba(255, 140, 0, 0.4), inset 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        /* Fire pulse animation */
+        @keyframes fireGlow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(255, 100, 0, 0.8)); }
+            50% { filter: drop-shadow(0 0 30px rgba(255, 200, 0, 1)); }
+        }
+        .animate-fire {
+            animation: fireGlow 1.5s infinite alternate ease-in-out;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen bg-slate-950 text-white select-none">
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" class="absolute inset-0 z-0 cursor-crosshair"></canvas>
+
+    <!-- Top UI Overlay Header -->
+    <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-10 pointer-events-none">
+        <!-- Title & Stats -->
+        <div class="flex items-center space-x-3 bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-amber-500/30 pointer-events-auto">
+            <div class="text-3xl text-amber-400 font-bold">🏹</div>
+            <div>
+                <h1 class="text-lg font-bold text-amber-300 tracking-wide font-festive">RAVAN DAHAN</h1>
+                <div class="flex space-x-4 text-xs font-semibold text-amber-100/90">
+                    <span>SCORE: <span id="scoreVal" class="text-amber-400 font-mono text-sm">0</span></span>
+                    <span>HIGH: <span id="highScoreVal" class="text-yellow-400 font-mono text-sm">0</span></span>
+                    <span>ARROWS: <span id="arrowVal" class="text-amber-400 font-mono text-sm">15</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls / Buttons -->
+        <div class="flex space-x-3 pointer-events-auto">
+            <button id="soundToggle" class="w-12 h-12 bg-black/60 backdrop-blur-md rounded-2xl border border-amber-500/30 flex items-center justify-center text-amber-400 hover:bg-amber-500/20 transition-all text-xl active:scale-95 shadow-lg">
+                <i class="fas fa-volume-up" id="soundIcon"></i>
+            </button>
+            <button id="restartBtn" class="px-4 h-12 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 rounded-2xl border border-amber-300/40 font-semibold text-sm tracking-wide shadow-lg flex items-center space-x-2 active:scale-95 transition-all">
+                <i class="fas fa-redo"></i>
+                <span class="hidden sm:inline">RESET</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- On-screen Controls Overlay & Instructions -->
+    <div id="instructionsOverlay" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-amber-500/30 text-amber-200/90 text-xs sm:text-sm font-medium z-10 pointer-events-none text-center shadow-lg transition-opacity duration-500">
+        <i class="fas fa-hand-pointer mr-2 text-amber-400 animate-bounce"></i> Click/Touch & Drag back from Bow to Aim & Release to Shoot!
+    </div>
+
+    <!-- Ravan Burning Celebration Modal -->
+    <div id="victoryModal" class="absolute inset-0 bg-black/80 backdrop-blur-md z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-700">
+        <div class="bg-gradient-to-b from-amber-950/90 to-slate-900/90 border-2 border-amber-500/60 p-8 sm:p-12 rounded-3xl max-w-lg w-11/12 text-center glow-box animate-fire relative overflow-hidden">
+            <!-- Decorative Flower Garland Graphic (CSS/SVG) -->
+            <div class="absolute -top-3 left-0 w-full flex justify-around opacity-70 text-amber-400 text-lg">
+                ❀ ❀ ❀ ❀ ❀ ❀ ❀ ❀ ❀ ❀ ❀ ❀
+            </div>
+
+            <div class="text-6xl mb-3 animate-bounce">🏹🔥✨</div>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-amber-300 font-festive glow-text-gold mb-2 tracking-wider">HAPPY DUSSEHRA!</h2>
+            <p class="text-amber-100 text-sm sm:text-base mb-6 font-medium leading-relaxed">
+                You have vanquished Ravan with truth and righteousness! Good has triumphed over evil once again.
+            </p>
+
+            <div class="bg-black/40 rounded-2xl p-4 border border-amber-500/20 mb-6 flex justify-around items-center">
+                <div>
+                    <div class="text-xs text-amber-300/70 uppercase tracking-widest font-semibold">Final Score</div>
+                    <div id="finalScore" class="text-3xl font-extrabold text-amber-400 font-mono">0</div>
+                </div>
+                <div class="h-8 w-px bg-amber-500/20"></div>
+                <div>
+                    <div class="text-xs text-amber-300/70 uppercase tracking-widest font-semibold">Heads Defeated</div>
+                    <div class="text-3xl font-extrabold text-red-500 font-mono">10 / 10</div>
+                </div>
+            </div>
+
+            <button id="playAgainBtn" class="w-full py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-slate-950 font-extrabold rounded-xl shadow-xl text-lg tracking-wider uppercase transition-all duration-200 transform hover:scale-105 active:scale-95">
+                🔥 Burn Ravan Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal (Out of arrows) -->
+    <div id="gameOverModal" class="absolute inset-0 bg-black/80 backdrop-blur-md z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-red-500/40 p-8 rounded-3xl max-w-md w-11/12 text-center shadow-2xl">
+            <div class="text-5xl mb-3">🏹</div>
+            <h2 class="text-3xl font-bold text-red-400 font-festive mb-2">Out of Arrows!</h2>
+            <p class="text-slate-300 text-sm mb-6">
+                Ravan still has <span id="remainingHp" class="text-red-400 font-bold"></span> HP left! Aim carefully and try again.
+            </p>
+
+            <button id="tryAgainBtn" class="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Synthesizer (Web Audio API) Script & Game Logic -->
+    <script>
+        // --- Web Audio API Synthesizer ---
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playShoot() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Tension bow string pluck sound
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+
+            playHit() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+
+                // Fire hit thud + noise burst
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.2);
+
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+
+            playExplosion() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+
+                // White noise firework / burn explosion
+                const bufferSize = this.ctx.sampleRate * 0.5;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, now);
+                filter.frequency.linearRampToValueAtTime(100, now + 0.5);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start(now);
+                noise.stop(now + 0.5);
+            }
+
+            playFireworkWhistle() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300 + Math.random() * 200, now);
+                osc.frequency.exponentialRampToValueAtTime(1200 + Math.random() * 400, now + 0.3);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        // --- Game Logic & Canvas Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Element References
+        const scoreValEl = document.getElementById('scoreVal');
+        const highScoreValEl = document.getElementById('highScoreVal');
+        const arrowValEl = document.getElementById('arrowVal');
+        const victoryModal = document.getElementById('victoryModal');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreEl = document.getElementById('finalScore');
+        const remainingHpEl = document.getElementById('remainingHp');
+        const soundToggleBtn = document.getElementById('soundToggle');
+        const soundIcon = document.getElementById('soundIcon');
+        const restartBtn = document.getElementById('restartBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+        // High Score setup
+        let highScore = localStorage.getItem('ravan_high_score') || 0;
+        highScoreValEl.innerText = highScore;
+
+        // Sound Toggle
+        soundToggleBtn.addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            if (sfx.muted) {
+                soundIcon.className = 'fas fa-volume-mute text-red-400';
+            } else {
+                soundIcon.className = 'fas fa-volume-up text-amber-400';
+                sfx.init();
+            }
+        });
+
+        // Game State Variables
+        let width = 0;
+        let height = 0;
+        let score = 0;
+        let arrowsLeft = 15;
+        let isGameOver = false;
+        let isVictory = false;
+
+        // Player & Bow Mechanics
+        const bow = {
+            x: 100,
+            y: 0,
+            radius: 50,
+            isDragging: false,
+            dragStartX: 0,
+            dragStartY: 0,
+            pullX: 0,
+            pullY: 0,
+            angle: 0,
+            power: 0,
+            maxPower: 26
+        };
+
+        // Active Arrows Array
+        let arrows = [];
+
+        // Ravan Boss Object
+        const ravan = {
+            x: 0,
+            y: 0,
+            width: 130,
+            height: 220,
+            maxHp: 100,
+            hp: 100,
+            heads: 10,
+            shakeAmount: 0,
+            burnIntensity: 0,
+            floatOffset: 0,
+            isDead: false
+        };
+
+        // Arrays for Visual Effects
+        let particles = [];
+        let fireworks = [];
+        let popups = [];
+        let stars = [];
+
+        // Resize Canvas dynamically
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Position Bow & Ravan appropriately based on screen bounds
+            bow.x = Math.max(70, width * 0.12);
+            bow.y = height * 0.65;
+
+            ravan.x = Math.min(width - 150, width * 0.82);
+            ravan.y = height * 0.52;
+
+            // Re-generate stars background
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 120; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * (height * 0.7),
+                    size: Math.random() * 2 + 0.5,
+                    alpha: Math.random() * 0.8 + 0.2,
+                    twinkleSpeed: (Math.random() - 0.5) * 0.02
+                });
+            }
+        }
+
+        // Initialize / Reset Game
+        function resetGame() {
+            score = 0;
+            arrowsLeft = 15;
+            ravan.hp = ravan.maxHp;
+            ravan.isDead = false;
+            ravan.burnIntensity = 0;
+            isGameOver = false;
+            isVictory = false;
+
+            arrows = [];
+            particles = [];
+            fireworks = [];
+            popups = [];
+
+            scoreValEl.innerText = score;
+            arrowValEl.innerText = arrowsLeft;
+
+            victoryModal.classList.add('opacity-0', 'pointer-events-none');
+            gameOverModal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- User Interaction / Aiming Listeners ---
+        function getEventPos(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        function onPointerDown(e) {
+            if (isGameOver || isVictory || arrowsLeft <= 0) return;
+            sfx.init();
+
+            const pos = getEventPos(e);
+            const dist = Math.hypot(pos.x - bow.x, pos.y - bow.y);
+
+            // Allow dragging if clicked/touched near bow
+            if (dist < 150) {
+                bow.isDragging = true;
+                bow.dragStartX = pos.x;
+                bow.dragStartY = pos.y;
+                bow.pullX = bow.x;
+                bow.pullY = bow.y;
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!bow.isDragging) return;
+            const pos = getEventPos(e);
+
+            // Pull back vector (opposite direction of aim)
+            let dx = bow.x - pos.x;
+            let dy = bow.y - pos.y;
+            
+            // Constrain pulling forward
+            if (dx < -20) dx = -20;
+
+            const dist = Math.hypot(dx, dy);
+            const maxPull = 120;
+            const clampedDist = Math.min(dist, maxPull);
+
+            bow.angle = Math.atan2(dy, dx);
+            bow.power = (clampedDist / maxPull) * bow.maxPower;
+
+            bow.pullX = bow.x - Math.cos(bow.angle) * clampedDist;
+            bow.pullY = bow.y - Math.sin(bow.angle) * clampedDist;
+        }
+
+        function onPointerUp() {
+            if (!bow.isDragging) return;
+            bow.isDragging = false;
+
+            // Shoot arrow if enough power
+            if (bow.power > 3 && arrowsLeft > 0) {
+                arrowsLeft--;
+                arrowValEl.innerText = arrowsLeft;
+
+                const vx = Math.cos(bow.angle) * bow.power;
+                const vy = Math.sin(bow.angle) * bow.power;
+
+                arrows.push({
+                    x: bow.x,
+                    y: bow.y,
+                    vx: vx,
+                    vy: vy,
+                    angle: bow.angle,
+                    stuck: false,
+                    inTarget: false
+                });
+
+                sfx.playShoot();
+            }
+
+            bow.power = 0;
+        }
+
+        window.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+
+        window.addEventListener('touchstart', onPointerDown, { passive: true });
+        window.addEventListener('touchmove', onPointerMove, { passive: true });
+        window.addEventListener('touchend', onPointerUp);
+
+        restartBtn.addEventListener('click', resetGame);
+        playAgainBtn.addEventListener('click', resetGame);
+        tryAgainBtn.addEventListener('click', resetGame);
+
+        // --- Render Helpers ---
+
+        // Draw Starry Sky & Dussehra Night Background
+        function drawBackground() {
+            // Celestial Sky Gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+            skyGrad.addColorStop(0, '#04020a');
+            skyGrad.addColorStop(0.5, '#0e0826');
+            skyGrad.addColorStop(1, '#1b092b');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Glowing Moon
+            ctx.save();
+            ctx.shadowColor = '#fff3d1';
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = '#fff8e7';
+            ctx.beginPath();
+            ctx.arc(width * 0.25, height * 0.2, 45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Twinkling Stars
+            stars.forEach(star => {
+                star.alpha += star.twinkleSpeed;
+                if (star.alpha > 0.9 || star.alpha < 0.2) star.twinkleSpeed *= -1;
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+
+            // Distant Fort / Palace Silhouettes Background
+            ctx.fillStyle = '#060312';
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+            for (let i = 0; i < width; i += 80) {
+                const towerH = Math.sin(i * 0.01) * 30 + 60;
+                ctx.lineTo(i, height - towerH);
+                ctx.lineTo(i + 40, height - towerH - 15);
+                ctx.lineTo(i + 80, height - towerH);
+            }
+            ctx.lineTo(width, height);
+            ctx.fill();
+
+            // Ground & Platform
+            const groundGrad = ctx.createLinearGradient(0, height - 80, 0, height);
+            groundGrad.addColorStop(0, '#150a04');
+            groundGrad.addColorStop(1, '#080302');
+            ctx.fillStyle = groundGrad;
+            ctx.fillRect(0, height - 80, width, 80);
+
+            // Golden Marigold Decorative Border at Bottom
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 80);
+            ctx.lineTo(width, height - 80);
+            ctx.stroke();
+        }
+
+        // Draw Player Bow & Aim Trajectory
+        function drawBow() {
+            ctx.save();
+            ctx.translate(bow.x, bow.y);
+
+            // Trajectory Prediction Line when dragging
+            if (bow.isDragging) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 200, 50, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 6]);
+
+                let simX = 0;
+                let simY = 0;
+                let simVx = Math.cos(bow.angle) * bow.power;
+                let simVy = Math.sin(bow.angle) * bow.power;
+
+                ctx.beginPath();
+                ctx.moveTo(simX, simY);
+
+                for (let i = 0; i < 25; i++) {
+                    simX += simVx;
+                    simY += simVy;
+                    simVy += 0.45; // Gravity match
+                    ctx.lineTo(simX, simY);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Rotate Bow towards Aim
+            ctx.rotate(bow.angle);
+
+            // Bow Wood Curve
+            ctx.strokeStyle = '#8b4513';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(0, 0, bow.radius, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+
+            // Decorative Gold Caps on Bow
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(0, -bow.radius, 6, 0, Math.PI * 2);
+            ctx.arc(0, bow.radius, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bow String
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            if (bow.isDragging) {
+                // Pulled bow string
+                const pullDist = (bow.power / bow.maxPower) * 45;
+                ctx.moveTo(0, -bow.radius);
+                ctx.lineTo(-pullDist, 0);
+                ctx.lineTo(0, bow.radius);
+
+                // Nocked Fiery Arrow
+                ctx.save();
+                ctx.translate(-pullDist, 0);
+                drawArrowGraphic(0, 0, 0, true);
+                ctx.restore();
+            } else {
+                ctx.moveTo(0, -bow.radius);
+                ctx.lineTo(0, bow.radius);
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Graphic helper for Fiery Arrow
+        function drawArrowGraphic(x, y, angle, glowing = false) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            // Arrow Shaft
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(25, 0);
+            ctx.stroke();
+
+            // Arrow Head (Glowing Golden Fire)
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(25, 0);
+            ctx.lineTo(15, -6);
+            ctx.lineTo(17, 0);
+            ctx.lineTo(15, 6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Arrow Tail Feathers
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(-32, -6);
+            ctx.lineTo(-28, 0);
+            ctx.lineTo(-32, 6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Fiery Tip Glow
+            if (glowing) {
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
+                ctx.beginPath();
+                ctx.arc(25, 0, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // Draw Ravan Effigy (10 Heads, Crown, Body & Health Bar)
+        function drawRavan() {
+            if (ravan.isDead) return;
+
+            ravan.floatOffset = Math.sin(Date.now() * 0.003) * 4;
+
+            ctx.save();
+
+            // Shake Effect when damaged
+            let rx = ravan.x;
+            let ry = ravan.y + ravan.floatOffset;
+
+            if (ravan.shakeAmount > 0) {
+                rx += (Math.random() - 0.5) * ravan.shakeAmount;
+                ry += (Math.random() - 0.5) * ravan.shakeAmount;
+                ravan.shakeAmount *= 0.9;
+            }
+
+            // Platform / Effigy Stand
+            ctx.fillStyle = '#331800';
+            ctx.fillRect(rx - 40, height - 120, ravan.width + 80, 40);
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(rx - 45, height - 120, ravan.width + 90, 6);
+
+            // Wood / Bamboo Support Frame
+            ctx.strokeStyle = '#5c3a21';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(rx + ravan.width / 2, ry + 120);
+            ctx.lineTo(rx + ravan.width / 2, height - 80);
+            ctx.stroke();
+
+            // Body / Royal Garbs
+            ctx.fillStyle = '#7c2d12'; // Royal Marron / Gold Coat
+            ctx.beginPath();
+            ctx.moveTo(rx + 20, ry + 70);
+            ctx.lineTo(rx + ravan.width - 20, ry + 70);
+            ctx.lineTo(rx + ravan.width, ry + 170);
+            ctx.lineTo(rx, ry + 170);
+            ctx.closePath();
+            ctx.fill();
+
+            // Gold Trim on Armor
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 10 HEADS ARCHITECTURE
+            // Main central head is index 0; side heads 1..9 spread out horizontally
+            const headPositions = [
+                { offset: 0, scale: 1.25, isMain: true }, // Main center head
+                { offset: -25, scale: 0.9 }, { offset: 25, scale: 0.9 },
+                { offset: -48, scale: 0.8 }, { offset: 48, scale: 0.8 },
+                { offset: -68, scale: 0.7 }, { offset: 68, scale: 0.7 },
+                { offset: -86, scale: 0.6 }, { offset: 86, scale: 0.6 },
+                { offset: -102, scale: 0.5 }
+            ];
+
+            const headsRemaining = Math.max(1, Math.ceil((ravan.hp / ravan.maxHp) * 10));
+
+            headPositions.forEach((h, idx) => {
+                // Hide heads that are burned off
+                if (idx >= headsRemaining) return;
+
+                const hx = rx + ravan.width / 2 + h.offset;
+                const hy = ry + (h.isMain ? 20 : 32 + Math.abs(h.offset) * 0.15);
+
+                ctx.save();
+                ctx.translate(hx, hy);
+                ctx.scale(h.scale, h.scale);
+
+                // Head Face (Golden / Festive Effigy Skin)
+                ctx.fillStyle = '#d97706';
+                ctx.beginPath();
+                ctx.arc(0, 0, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#78350f';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Iconic Mustache
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.ellipse(0, 4, 10, 3, 0, 0, Math.PI);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-6, -4, 4, 3);
+                ctx.fillRect(2, -4, 4, 3);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-4, -3, 2, 2);
+                ctx.fillRect(4, -3, 2, 2);
+
+                // Crown (Mukut)
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                ctx.moveTo(-14, -12);
+                ctx.lineTo(0, -32);
+                ctx.lineTo(14, -12);
+                ctx.lineTo(7, -10);
+                ctx.lineTo(0, -18);
+                ctx.lineTo(-7, -10);
+                ctx.closePath();
+                ctx.fill();
+
+                // Crown Gem
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(0, -20, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+
+            // Fire Effect around Ravan as HP drops
+            if (ravan.hp < ravan.maxHp) {
+                const fireParticleCount = Math.floor((1 - ravan.hp / ravan.maxHp) * 15) + 3;
+                for (let i = 0; i < fireParticleCount; i++) {
+                    ctx.fillStyle = Math.random() > 0.5 ? '#f97316' : '#ef4444';
+                    const fx = rx + Math.random() * ravan.width;
+                    const fy = ry + Math.random() * ravan.height;
+                    ctx.beginPath();
+                    ctx.arc(fx, fy, Math.random() * 6 + 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Health Bar above Ravan
+            const hpWidth = 140;
+            const hpHeight = 12;
+            const hpX = rx + ravan.width / 2 - hpWidth / 2;
+            const hpY = ry - 50;
+
+            // Background / Container
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2;
+            ctx.roundRect(hpX, hpY, hpWidth, hpHeight, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // HP Fill Gradient
+            const hpPercent = Math.max(0, ravan.hp / ravan.maxHp);
+            const fillGrad = ctx.createLinearGradient(hpX, 0, hpX + hpWidth, 0);
+            fillGrad.addColorStop(0, '#ef4444');
+            fillGrad.addColorStop(0.5, '#f59e0b');
+            fillGrad.addColorStop(1, '#10b981');
+
+            ctx.fillStyle = fillGrad;
+            ctx.roundRect(hpX + 2, hpY + 2, (hpWidth - 4) * hpPercent, hpHeight - 4, 4);
+            ctx.fill();
+
+            // Head Count Badge
+            ctx.fillStyle = '#fef08a';
+            ctx.font = 'bold 12px Poppins';
+            ctx.textAlign = 'center';
+            ctx.fillText(`RAVAN HP: ${Math.ceil(ravan.hp)}`, hpX + hpWidth / 2, hpY - 8);
+
+            ctx.restore();
+        }
+
+        // --- Explosions & Particle Systems ---
+        function createExplosion(x, y, count = 30) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 7 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: ['#ef4444', '#f97316', '#fbbf24', '#ffffff'][Math.floor(Math.random() * 4)],
+                    radius: Math.random() * 4 + 2,
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.015
+                });
+            }
+        }
+
+        function createFireworks() {
+            if (Math.random() < 0.12) {
+                const fx = Math.random() * width;
+                const fy = Math.random() * (height * 0.5);
+                const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+
+                sfx.playFireworkWhistle();
+
+                for (let i = 0; i < 50; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 6 + 1.5;
+                    fireworks.push({
+                        x: fx,
+                        y: fy,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: color,
+                        radius: Math.random() * 3 + 1,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.01
+                    });
+                }
+            }
+        }
+
+        function addScorePopup(text, x, y) {
+            popups.push({
+                text: text,
+                x: x,
+                y: y,
+                alpha: 1,
+                vy: -2
+            });
+        }
+
+        // --- Main Game Loop Physics & Render ---
+        function update() {
+            // Update Arrows Physics
+            for (let i = arrows.length - 1; i >= 0; i--) {
+                const a = arrows[i];
+                if (!a.stuck) {
+                    a.x += a.vx;
+                    a.y += a.vy;
+                    a.vy += 0.45; // Gravity
+                    a.angle = Math.atan2(a.vy, a.vx);
+
+                    // Check Collision with Ravan
+                    const hitMargin = 20;
+                    if (
+                        a.x >= ravan.x - hitMargin &&
+                        a.x <= ravan.x + ravan.width + hitMargin &&
+                        a.y >= ravan.y - 20 &&
+                        a.y <= ravan.y + ravan.height &&
+                        !ravan.isDead
+                    ) {
+                        a.stuck = true;
+
+                        // Calculate Damage (Headshots give double points)
+                        const isHeadShot = a.y < ravan.y + 60;
+                        const damage = isHeadShot ? 25 : 15;
+                        const points = isHeadShot ? 200 : 100;
+
+                        ravan.hp -= damage;
+                        ravan.shakeAmount = 15;
+                        score += points;
+
+                        scoreValEl.innerText = score;
+                        if (score > highScore) {
+                            highScore = score;
+                            localStorage.setItem('ravan_high_score', highScore);
+                            highScoreValEl.innerText = highScore;
+                        }
+
+                        sfx.playHit();
+                        createExplosion(a.x, a.y, 25);
+                        addScorePopup(isHeadShot ? '🎯 HEADSHOT! +200' : '🔥 HIT! +100', a.x, a.y);
+
+                        // Ravan Defeated Trigger
+                        if (ravan.hp <= 0 && !ravan.isDead) {
+                            ravan.hp = 0;
+                            ravan.isDead = true;
+                            isVictory = true;
+
+                            sfx.playExplosion();
+                            createExplosion(ravan.x + ravan.width / 2, ravan.y + ravan.height / 2, 120);
+
+                            // Show Victory Banner Modal after brief explosion
+                            setTimeout(() => {
+                                finalScoreEl.innerText = score;
+                                victoryModal.classList.remove('opacity-0', 'pointer-events-none');
+                            }, 1000);
+                        }
+                    }
+
+                    // Remove arrow if out of bounds
+                    if (a.x > width + 100 || a.y > height + 100 || a.x < -100) {
+                        arrows.splice(i, 1);
+                    }
+                }
+            }
+
+            // Check Loss condition (out of arrows and Ravan alive)
+            if (arrowsLeft === 0 && arrows.length === 0 && !ravan.isDead && !isGameOver) {
+                isGameOver = true;
+                setTimeout(() => {
+                    remainingHpEl.innerText = Math.ceil(ravan.hp);
+                    gameOverModal.classList.remove('opacity-0', 'pointer-events-none');
+                }, 800);
+            }
+
+            // Update Explosions & Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            // Update Celebration Fireworks
+            if (isVictory) {
+                createFireworks();
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    const f = fireworks[i];
+                    f.x += f.vx;
+                    f.y += f.vy;
+                    f.vy += 0.05;
+                    f.alpha -= f.decay;
+                    if (f.alpha <= 0) fireworks.splice(i, 1);
+                }
+            }
+
+            // Update Text Popups
+            for (let i = popups.length - 1; i >= 0; i--) {
+                const pop = popups[i];
+                pop.y += pop.vy;
+                pop.alpha -= 0.02;
+                if (pop.alpha <= 0) popups.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            drawBackground();
+            drawRavan();
+            drawBow();
+
+            // Draw Active Arrows
+            arrows.forEach(a => {
+                drawArrowGraphic(a.x, a.y, a.angle, true);
+            });
+
+            // Draw Particles / Explosions
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Victory Fireworks
+            fireworks.forEach(f => {
+                ctx.save();
+                ctx.globalAlpha = f.alpha;
+                ctx.fillStyle = f.color;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Score Popups
+            popups.forEach(pop => {
+                ctx.save();
+                ctx.globalAlpha = pop.alpha;
+                ctx.fillStyle = '#fbbf24';
+                ctx.font = 'extrabold 16px Poppins';
+                ctx.shadowColor = '#000';
+                ctx.shadowBlur = 6;
+                ctx.fillText(pop.text, pop.x, pop.y);
+                ctx.restore();
+            });
+        }
+
+        // --- Game Animation Loop ---
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start initialization on window load
+        window.onload = () => {
+            resizeCanvas();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>

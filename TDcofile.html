@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TD Co. | We Do Cool Stuff</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Faded Bookshelf Background Layer */
+        .bookshelf-bg {
+            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: all 0.5s ease-in-out;
+        }
+
+        /* LIGHT MODE STYLING */
+        body.light-mode .bookshelf-overlay {
+            background: linear-gradient(
+                180deg,
+                rgba(224, 242, 254, 0.82) 0%,
+                rgba(186, 230, 253, 0.88) 50%,
+                rgba(224, 242, 254, 0.85) 100%
+            );
+            backdrop-filter: blur(2px);
+        }
+
+        body.light-mode .hero-title {
+            color: #0284C7;
+            text-shadow: 0 1px 2px rgba(2, 132, 199, 0.15);
+        }
+
+        body.light-mode .hero-subtitle {
+            color: #0369A1;
+        }
+
+        body.light-mode .section-heading {
+            color: #0284C7;
+            text-shadow: 0 1px 2px rgba(2, 132, 199, 0.12);
+        }
+
+        body.light-mode .plain-text-body {
+            color: #0F172A;
+        }
+
+        body.light-mode .link-slot {
+            color: #0369A1;
+            background-color: rgba(2, 132, 199, 0.08);
+            border-color: rgba(2, 132, 199, 0.2);
+        }
+
+        /* NIGHT MODE STYLING */
+        body.night-mode .bookshelf-overlay {
+            background: linear-gradient(
+                180deg,
+                rgba(3, 7, 18, 0.92) 0%,
+                rgba(15, 23, 42, 0.95) 50%,
+                rgba(2, 6, 23, 0.96) 100%
+            );
+            backdrop-filter: blur(3px);
+        }
+
+        body.night-mode .hero-title {
+            background: linear-gradient(135deg, #E2E8F0 0%, #38BDF8 50%, #2DD4BF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.45));
+        }
+
+        body.night-mode .hero-subtitle {
+            background: linear-gradient(135deg, #CBD5E1 0%, #0EA5E9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.35));
+        }
+
+        body.night-mode .section-heading {
+            background: linear-gradient(135deg, #38BDF8 0%, #2DD4BF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 12px rgba(45, 212, 191, 0.4));
+        }
+
+        body.night-mode .plain-text-body {
+            color: #2DD4BF;
+            text-shadow: 0 0 10px rgba(45, 212, 191, 0.25);
+        }
+
+        body.night-mode .link-slot {
+            color: #38BDF8;
+            background-color: rgba(15, 23, 42, 0.6);
+            border-color: rgba(56, 189, 248, 0.3);
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+        }
+
+        /* FAST CONTINUOUS MARQUEE ANIMATION */
+        @keyframes marqueeBelt {
+            0% {
+                transform: translateX(0%);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-belt-fast {
+            display: flex;
+            width: max-content;
+            animation: marqueeBelt 10s linear infinite;
+        }
+
+        .animate-belt-fast:hover {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+<body class="light-mode font-sans min-h-screen relative overflow-x-hidden transition-colors duration-500">
+
+    <!-- Faded Bookshelf Background with Dynamic Mode Overlay -->
+    <div class="fixed inset-0 bookshelf-bg -z-20 pointer-events-none"></div>
+    <div class="fixed inset-0 bookshelf-overlay -z-10 pointer-events-none transition-all duration-500"></div>
+
+    <!-- Header: Monogram Logo + Mode Toggle Button -->
+    <header class="max-w-xl mx-auto pt-8 px-6 flex items-center justify-between relative z-20">
+        <!-- Logo -->
+        <a href="#" class="flex items-center group">
+            <div class="font-display font-black text-4xl sm:text-5xl tracking-tighter flex items-center group-hover:scale-105 transition-transform">
+                <span class="text-emerald-500 font-extrabold leading-none">T</span>
+                <span class="-ml-2 text-sky-600 dark:text-cyan-400 font-black leading-none italic transform -skew-x-6">D</span>
+            </div>
+        </a>
+
+        <!-- Light / Night Mode Switcher -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="flex items-center gap-2 bg-sky-100/60 dark:bg-slate-900/60 border border-sky-400/30 dark:border-cyan-500/30 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm hover:scale-105 transition-all">
+            <span id="mode-icon" class="text-sm">☀️</span>
+            <span id="mode-text" class="text-xs font-bold uppercase tracking-wider text-sky-900">Light Mode</span>
+        </button>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-xl mx-auto px-6 py-8 flex flex-col space-y-12 relative z-10">
+
+        <!-- Hero Section -->
+        <section class="flex flex-col space-y-1">
+            <h1 class="hero-title text-4xl sm:text-5xl font-extrabold font-display tracking-tight leading-tight transition-all duration-500">
+                we do cool stuff
+            </h1>
+            <p class="hero-subtitle text-xl sm:text-2xl font-bold tracking-wide transition-all duration-500">
+                doing cool things since 2026
+            </p>
+        </section>
+
+        <!-- Fast Continuous Horizontal Infinite Marquee Timeline -->
+        <section class="w-full overflow-hidden py-1" aria-label="Company Milestones Timeline">
+            <div class="animate-belt-fast flex items-center space-x-4">
+                
+                <!-- Timeline Item 1 -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide">
+                    2026 we started
+                </div>
+                <!-- Timeline Item 2 -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide">
+                    2027 our paying customer
+                </div>
+                <!-- Timeline Item 3 -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide">
+                    2027 our first 10 lakh
+                </div>
+                <!-- Timeline Item 4 -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide">
+                    2028 dillicart launched
+                </div>
+                <!-- Timeline Item 5 -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide">
+                    2029 reached $1M valuation
+                </div>
+
+                <!-- DUPLICATE SET FOR INFINITE SEAMLESS LOOP -->
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide" aria-hidden="true">
+                    2026 we started
+                </div>
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide" aria-hidden="true">
+                    2027 our paying customer
+                </div>
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide" aria-hidden="true">
+                    2027 our first 10 lakh
+                </div>
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide" aria-hidden="true">
+                    2028 dillicart launched
+                </div>
+                <div class="whitespace-nowrap px-4 py-2 rounded-xl bg-sky-500/10 dark:bg-cyan-950/40 border border-sky-400/30 dark:border-cyan-500/30 text-sky-900 dark:text-cyan-200 font-bold text-sm tracking-wide" aria-hidden="true">
+                    2029 reached $1M valuation
+                </div>
+
+            </div>
+        </section>
+
+        <!-- What Did We Do Section (Uncontained text) -->
+        <section class="flex flex-col space-y-3">
+            <h2 class="section-heading text-2xl sm:text-3xl font-extrabold font-display tracking-tight transition-all duration-500">
+                what did we do over the years ?
+            </h2>
+            <p class="plain-text-body text-base sm:text-lg font-medium leading-relaxed transition-all duration-500">
+                we as a serial entrepreneurship team build and deliver solutions that improve life , businesses , amd operations
+            </p>
+        </section>
+
+        <!-- Standalone Project Section 1 -->
+        <section class="flex flex-col space-y-3 pt-2">
+            <h2 class="section-heading text-2xl sm:text-3xl font-extrabold font-display tracking-tight transition-all duration-500">
+                velolabs sprint time estimator and calculator
+            </h2>
+            <a href="sprint_performance_calculator.html" class="link-slot inline-flex items-center gap-2 w-max px-4 py-2 rounded-lg border font-mono text-xs sm:text-sm font-semibold transition-all hover:scale-105">
+                <span>🔗</span>
+                <span>VeloLabs Sprint calculator</span>
+            </a>
+        </section>
+
+        <!-- Standalone Project Section 2 -->
+        <section class="flex flex-col space-y-3 pt-2">
+            <h2 class="section-heading text-2xl sm:text-3xl font-extrabold font-display tracking-tight transition-all duration-500">
+                ravan dahan game
+            </h2>
+            <a href="Index.html" class="link-slot inline-flex items-center gap-2 w-max px-4 py-2 rounded-lg border font-mono text-xs sm:text-sm font-semibold transition-all hover:scale-105">
+                <span>🔗</span>
+                <span>Ravan Dahan Game</span>
+            </a>
+        </section>
+
+        <!-- Standalone Project Section 3 -->
+        <section class="flex flex-col space-y-3 pt-2">
+            <h2 class="section-heading text-2xl sm:text-3xl font-extrabold font-display tracking-tight transition-all duration-500">
+                DASH performance tuning webpage
+            </h2>
+            <a href="DASHperf.html" class="link-slot inline-flex items-center gap-2 w-max px-4 py-2 rounded-lg border font-mono text-xs sm:text-sm font-semibold transition-all hover:scale-105">
+                <span>🔗</span>
+                <span>DASH performance website</span>
+            </a>
+        </section>
+
+    </main>
+
+    <!-- Semantic Footer -->
+    <footer class="max-w-xl mx-auto px-6 py-8 mt-12 border-t border-sky-400/20 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs plain-text-body opacity-80">
+        <p>&copy; 2026 TD Co. Holding Group. All rights reserved.</p>
+        <p class="mt-2 sm:mt-0 font-medium">Built for performance & scale.</p>
+    </footer>
+
+    <!-- Theme Toggle Logic Script -->
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('mode-icon');
+            const text = document.getElementById('mode-text');
+
+            if (body.classList.contains('light-mode')) {
+                // Switch to Night Mode
+                body.classList.remove('light-mode');
+                body.classList.add('night-mode');
+
+                icon.innerText = '🌙';
+                text.innerText = 'Night Mode';
+                text.className = 'text-xs font-bold uppercase tracking-wider text-cyan-200';
+            } else {
+                // Switch to Light Mode
+                body.classList.remove('night-mode');
+                body.classList.add('light-mode');
+
+                icon.innerText = '☀️';
+                text.innerText = 'Light Mode';
+                text.className = 'text-xs font-bold uppercase tracking-wider text-sky-900';
+            }
+        }
+    </script>
+</body>
+</html>
